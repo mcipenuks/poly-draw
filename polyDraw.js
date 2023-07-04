@@ -143,7 +143,6 @@ export default class PolyDraw {
 
     toggleDrawMode() {
         this.isDrawMode = !this.isDrawMode;
-        console.warn(this.canvas.selectable);
         this.canvas.selection = !this.canvas.selection;
 
         this.canvas.defaultCursor = this.isDrawMode ? 'crosshair' : 'default';
