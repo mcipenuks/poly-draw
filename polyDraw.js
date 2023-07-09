@@ -46,10 +46,14 @@ export default class PolyDraw {
 
     onMouseWheel(options) {
         const delta = options.e.deltaY;
+        const maxZoom = 2;
         const zoomStep = 0.2;
         let zoom = this.canvas.getZoom();
 
         if (delta < 0) {
+            if (zoom === maxZoom) {
+                return;
+            }
             zoom += zoomStep;
         } else {
             if (zoom > 1) {
@@ -57,7 +61,9 @@ export default class PolyDraw {
             }
         }
 
-        this.canvas.zoomToPoint(options.pointer, zoom);
+        const zoomRounded = (Math.round(zoom * 100) / 100);
+        this.canvas.zoomToPoint(options.pointer, zoomRounded);
+        this.handleViewportTransform();
     }
 
     onMouseDown(options) {
@@ -114,12 +120,22 @@ export default class PolyDraw {
     onDragMove(options) {
         const e = options.e;
         const vpt = this.canvas.viewportTransform;
-        const canvasWidth = this.canvas.getWidth();
-        const canvasHeight = this.canvas.getHeight();
-        const zoom = this.canvas.getZoom();
 
         vpt[4] += e.clientX - this.canvas.lastPosX;
         vpt[5] += e.clientY - this.canvas.lastPosY;
+
+        this.handleViewportTransform();
+
+        this.canvas.requestRenderAll();
+        this.canvas.lastPosX = e.clientX;
+        this.canvas.lastPosY = e.clientY;
+    }
+
+    handleViewportTransform() {
+        const vpt = this.canvas.viewportTransform;
+        const canvasWidth = this.canvas.getWidth();
+        const canvasHeight = this.canvas.getHeight();
+        const zoom = this.canvas.getZoom();
 
         if (vpt[4] > 0) {
             vpt[4] = 0;
@@ -128,19 +144,13 @@ export default class PolyDraw {
             vpt[5] = 0;
         }
 
-        if (zoom > 1) {
-            const rightPosX = canvasWidth - (canvasWidth * zoom);
-            const bottomPosY = canvasHeight - (canvasHeight * zoom);
-            if (vpt[4] < rightPosX) {
-                vpt[4] = rightPosX;
-            } if (vpt[5] < bottomPosY) {
-                vpt[5] = bottomPosY;
-            }
+        const rightPosX = canvasWidth - (canvasWidth * zoom);
+        const bottomPosY = canvasHeight - (canvasHeight * zoom);
+        if (vpt[4] < rightPosX) {
+            vpt[4] = rightPosX;
+        } if (vpt[5] < bottomPosY) {
+            vpt[5] = bottomPosY;
         }
-
-        this.canvas.requestRenderAll();
-        this.canvas.lastPosX = e.clientX;
-        this.canvas.lastPosY = e.clientY;
     }
 
     createPolygon() {
