@@ -4,6 +4,7 @@ export default class PolyDraw {
     canvas = null;
     isDrawMode = false;
     isDragging = false;
+    lines = [];
     points = [];
     polygons = [];
     polygonPoints = [];
@@ -25,10 +26,6 @@ export default class PolyDraw {
                 scaleY: this.canvas.height / img.height,
             });
         });
-
-        if (this.isDrawMode) {
-            this.canvas.selection = false;
-        }
     }
 
     bindEvents() {
@@ -72,7 +69,7 @@ export default class PolyDraw {
             }
         }
 
-        if (options.e.altKey === true) {
+        if (options.e.altKey) {
             this.isDragging = true;
             this.canvas.selection = false;
             this.canvas.lastPosX = options.e.clientX;
@@ -81,22 +78,35 @@ export default class PolyDraw {
     }
 
     onMouseMove(options) {
-        if (!this.isDragging) {
-            return;
+        const pointer = options.absolutePointer;
+        if (this.isDrawMode) {
+            const linesLength = this.lines.length;
+            if (linesLength > 0) {
+                const activeLine = this.lines[linesLength - 1];
+                activeLine.set({
+                    x2: pointer.x,
+                    y2: pointer.y,
+                });
+                this.canvas.renderAll();
+            }
         }
 
-        var e = options.e;
-        var vpt = this.canvas.viewportTransform;
-        vpt[4] += e.clientX - this.canvas.lastPosX;
-        vpt[5] += e.clientY - this.canvas.lastPosY;
-        this.canvas.requestRenderAll();
-        this.canvas.lastPosX = e.clientX;
-        this.canvas.lastPosY = e.clientY;
+        if (this.isDragging) {
+            var e = options.e;
+            var vpt = this.canvas.viewportTransform;
+            vpt[4] += e.clientX - this.canvas.lastPosX;
+            vpt[5] += e.clientY - this.canvas.lastPosY;
+            this.canvas.requestRenderAll();
+            this.canvas.lastPosX = e.clientX;
+            this.canvas.lastPosY = e.clientY;
+        }
     }
 
     onMouseUp() {
         this.isDragging = false;
-        this.canvas.selection = true;
+        if (!this.isDrawMode) {
+            this.canvas.selection = true;
+        }
     }
 
     createPolygon() {
@@ -113,11 +123,11 @@ export default class PolyDraw {
     }
 
     onPolygonCreated() {
-        this.points.forEach((point) => {
-            this.canvas.remove(point);
-        });
+        this.points.forEach((point) => this.canvas.remove(point));
+        this.lines.forEach((line) => this.canvas.remove(line));
 
         this.points = [];
+        this.lines = [];
         this.polygonPoints = [];
         this.toggleDrawMode();
     }
@@ -138,11 +148,30 @@ export default class PolyDraw {
             evented: isFirstPoint,
         });
 
-
         this.points.push(point);
         this.polygonPoints.push(pointer);
 
+        this.createPolygonLine(options);
         this.canvas.add(point);
+    }
+
+    createPolygonLine(options) {
+        const pointer = options.absolutePointer;
+        const line = new fabric.Line([
+            pointer.x, 
+            pointer.y,
+            pointer.x, 
+            pointer.y,
+        ], {
+            stroke: '#333',
+            originX: 'center',
+            originY: 'center',
+            selectable: false,
+            evented: false,
+        });
+        
+        this.lines.push(line);
+        this.canvas.add(line);
     }
 
     isStartPoint(point) {
