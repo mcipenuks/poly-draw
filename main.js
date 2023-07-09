@@ -16,8 +16,3 @@ const polyDraw = new PolyDraw('c');
 
 const drawToggle = document.getElementById('drawToggle');
 drawToggle.addEventListener('click', () => polyDraw.toggleDrawMode());
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'd') {
-        polyDraw.toggleDrawMode();
-    }
-});

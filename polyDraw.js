@@ -10,6 +10,7 @@ export default class PolyDraw {
 
     constructor(canvasId) {
         this.initCanvas(canvasId);
+        this.bindEvents();
     }
 
     initCanvas(canvasId) {
@@ -18,12 +19,6 @@ export default class PolyDraw {
             width: 600,
             height: 800,
         });
-
-        this.canvas.on('mouse:wheel', (options) => this.onMouseWheel(options));
-        this.canvas.on('mouse:down', (options) => this.onMouseDown(options));
-        this.canvas.on('mouse:move', (options) => this.onMouseMove(options));
-        this.canvas.on('mouse:up', (options) => this.onMouseUp(options));
-
         fabric.Image.fromURL('/wall.jpeg', (img) => {
             this.canvas.setBackgroundImage(img, () => this.canvas.renderAll(), {
                 scaleX: this.canvas.width / img.width,
@@ -34,6 +29,22 @@ export default class PolyDraw {
         if (this.isDrawMode) {
             this.canvas.selection = false;
         }
+    }
+
+    bindEvents() {
+        this.canvas.on('mouse:wheel', (options) => this.onMouseWheel(options));
+        this.canvas.on('mouse:down', (options) => this.onMouseDown(options));
+        this.canvas.on('mouse:move', (options) => this.onMouseMove(options));
+        this.canvas.on('mouse:up', (options) => this.onMouseUp(options));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd') {
+                this.toggleDrawMode();
+            }
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                this.removeActiveObject();
+            }
+        });
     }
 
     onMouseWheel(options) {
@@ -57,7 +68,7 @@ export default class PolyDraw {
             if (this.isStartPoint(options.target)) {
                 this.createPolygon();
             } else {
-                this.addPoint(options);
+                this.createPolygonPoint(options);
             }
         }
 
@@ -111,7 +122,7 @@ export default class PolyDraw {
         this.toggleDrawMode();
     }
 
-    addPoint(options) {
+    createPolygonPoint(options) {
         const pointer = options.absolutePointer;
         const isFirstPoint = this.polygonPoints.length == 0;
         const point = new fabric.Circle({
@@ -130,6 +141,7 @@ export default class PolyDraw {
 
         this.points.push(point);
         this.polygonPoints.push(pointer);
+
         this.canvas.add(point);
     }
 
@@ -152,5 +164,11 @@ export default class PolyDraw {
             polygon.hasControls = !this.isDrawMode;
             polygon.evented = !this.isDrawMode;
         });
+    }
+
+    removeActiveObject() {
+        const activeObject = this.canvas.getActiveObject();
+        this.canvas.remove(activeObject);
+        this.polygons.splice(this.polygons.indexOf(activeObject), 1);
     }
 }
