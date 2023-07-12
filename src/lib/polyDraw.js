@@ -46,7 +46,7 @@ export default class PolyDraw {
 
     onMouseWheel(options) {
         const delta = options.e.deltaY;
-        const maxZoom = 2;
+        const maxZoom = 4;
         const zoomStep = 0.2;
         let zoom = this.canvas.getZoom();
 
@@ -74,7 +74,7 @@ export default class PolyDraw {
             
         if (this.isDrawMode) {
             if (this.isStartPoint(options.target)) {
-                this.createPolygon();
+                this.createPolygon().then(() => this.onPolygonCreated());
             } else {
                 this.createPolygonPoint(options);
             }
@@ -153,8 +153,8 @@ export default class PolyDraw {
         }
     }
 
-    createPolygon() {
-        const polygon = new fabric.Polygon(this.polygonPoints, {
+    async createPolygon(polygonPoints) {
+        const polygon = new fabric.Polygon(polygonPoints ?? this.polygonPoints, {
             opacity: 0.3,
             fill: '#fff',
             stroke: '#000',
@@ -162,8 +162,6 @@ export default class PolyDraw {
 
         this.polygons.push(polygon);
         this.canvas.add(polygon);
-
-        this.onPolygonCreated();
     }
 
     onPolygonCreated() {
@@ -234,6 +232,8 @@ export default class PolyDraw {
 
         this.canvas.defaultCursor = this.isDrawMode ? 'crosshair' : 'default';
 
+        console.log(this.isDrawMode, this.canvas.selection, this.canvas.defaultCursor);
+
         this.polygons.forEach((polygon) => {
             polygon.selectable = !this.isDrawMode;
             polygon.hasControls = !this.isDrawMode;
@@ -245,5 +245,19 @@ export default class PolyDraw {
         const activeObject = this.canvas.getActiveObject();
         this.canvas.remove(activeObject);
         this.polygons.splice(this.polygons.indexOf(activeObject), 1);
+    }
+
+    exportPolygonPoints() {
+        if (!this.polygons.length) {
+            return [];
+        }
+
+        const points = this.polygons.map((polygon) => polygon.points);
+        console.warn(points);
+        console.warn(JSON.stringify(points));
+    }
+
+    importPolygons(polygons = []) {
+        polygons.forEach((polygonPoints) => this.createPolygon(polygonPoints));
     }
 }
