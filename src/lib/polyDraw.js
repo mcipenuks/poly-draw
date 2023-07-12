@@ -46,7 +46,7 @@ export default class PolyDraw {
 
     onMouseWheel(options) {
         const delta = options.e.deltaY;
-        const maxZoom = 4;
+        const maxZoom = 10;
         const zoomStep = 0.2;
         let zoom = this.canvas.getZoom();
 
@@ -232,8 +232,6 @@ export default class PolyDraw {
 
         this.canvas.defaultCursor = this.isDrawMode ? 'crosshair' : 'default';
 
-        console.log(this.isDrawMode, this.canvas.selection, this.canvas.defaultCursor);
-
         this.polygons.forEach((polygon) => {
             polygon.selectable = !this.isDrawMode;
             polygon.hasControls = !this.isDrawMode;
@@ -253,8 +251,7 @@ export default class PolyDraw {
         }
 
         const points = this.polygons.map((polygon) => polygon.points);
-        console.warn(points);
-        console.warn(JSON.stringify(points));
+        console.log(JSON.stringify(points));
     }
 
     importPolygons(polygons = []) {
