@@ -84,15 +84,13 @@ function App() {
 
     return (
         <>
-            <div className="parent">
-                <div>
-                    <canvas id="c"></canvas>
-                </div>
-                <div className="controls">
-                    <button id="drawToggle" onClick={onToggleDraw}>Toggle Draw Mode</button>
-                    <button id="export" onClick={onExport}>Export</button>
-                    <button id="import" onClick={onImport}>Import</button>
-                </div>
+            <div>
+                <canvas id="c"></canvas>
+            </div>
+            <div className="controls">
+                <button id="drawToggle" onClick={onToggleDraw}>Toggle Draw Mode</button>
+                <button id="export" onClick={onExport}>Export</button>
+                <button id="import" onClick={onImport}>Import</button>
             </div>
         </>
     )
