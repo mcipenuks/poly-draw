@@ -1,6 +1,7 @@
 import { fabric } from "fabric";
 
 export default class PolyDraw {
+    isBuildMode = true;
     canvas = null;
     isDrawMode = false;
     isDragging = false;
@@ -33,6 +34,8 @@ export default class PolyDraw {
         this.canvas.on('mouse:down', (options) => this.onMouseDown(options));
         this.canvas.on('mouse:move', (options) => this.onMouseMove(options));
         this.canvas.on('mouse:up', (options) => this.onMouseUp(options));
+        this.canvas.on('selection:created', (options) => this.onSelectObject(options));
+        this.canvas.on('selection:updated', (options) => this.onSelectObject(options));
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'd') {
@@ -42,6 +45,18 @@ export default class PolyDraw {
                 this.removeActiveObject();
             }
         });
+    }
+
+    onSelectObject(options) {
+        console.log(options);
+        const obj = options.selected[0];
+        obj.set({
+            opacity: 1,
+            fill: 'transparent',
+            stroke: '#fff',
+        });
+
+        this.canvas.renderAll();
     }
 
     onMouseWheel(options) {
@@ -155,9 +170,14 @@ export default class PolyDraw {
 
     async createPolygon(polygonPoints) {
         const polygon = new fabric.Polygon(polygonPoints ?? this.polygonPoints, {
+            id: 0 + this.polygons.length,
             opacity: 0.3,
             fill: '#fff',
             stroke: '#000',
+            strokeWidth: '2',
+            isHoldSelected: false,
+            isStartHold: false,
+            isTopHold: false,
         });
 
         this.polygons.push(polygon);
